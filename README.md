@@ -1,24 +1,24 @@
-# How to config Apache Kafka in golang HTTP-server
+# **How to Set Up Apache Kafka in a Golang HTTP Server**
 
+# 1. Overview of the Sarama Library for Apache Kafka in Go
 
-### Detailed Overview of the Sarama Library for Apache Kafka in Go
+`Sarama` is a popular Go library for working with Apache Kafka. It provides a full set of features for interacting with Kafka, including creating producers, consumers, consumer groups, and managing a Kafka cluster. In this overview, we will go over Sarama's main features and components and show how to use them.
 
-`Sarama` is a popular Go library for working with Apache Kafka. It provides a full suite of functionalities for interacting with Kafka, including creating producers, consumers, consumer groups, and tools for managing the Kafka cluster. In this overview, we will dive deep into the main features and components of `Sarama` and demonstrate how to use them.
+## 1. Installing Sarama
 
-### Installing Sarama
-
-To get started, install the library with the following command:
+First, install the library:
 
 ```bash
 go get github.com/IBM/sarama
 ```
+
 ```go
 import (
     "github.com/IBM/sarama"
 )
 ```
 
-### Logging
+## 2. Logging
 
 `Sarama` supports built-in logging, which can be configured as follows:
 
@@ -26,46 +26,45 @@ import (
 sarama.Logger = log.New(os.Stdout, "[Sarama] ", log.LstdFlags)
 ```
 
-### Key Components of Sarama
+# 2. Main Components of Sarama
 
-#### 1. Configuration
+## 1. Configuration
 
-Configuration is a crucial part of working with Sarama. It allows you to set up the behavior of the producer, consumer, and other components.
+Configuration is a key part of working with Sarama. It allows you to set the behavior of the producer, consumer, and other components.
 
 ```go
 config := sarama.NewConfig()
-config.Version = sarama.V2_6_0_0 // Specify Kafka protocol version
-config.ClientID = "example-client" // Set client ID
+config.Version = sarama.V2_6_0_0 // Specify the Kafka protocol version
+config.ClientID = "example-client" // Set the client ID
 ```
 
-##### Producer Configuration
+## 2. Producer Configuration
 
 Key parameters:
 
-- `Producer.RequiredAcks`: The level of acknowledgment required for sending messages. It can be:
-  - `NoResponse`: The producer does not wait for acknowledgment.
-  - `WaitForLocal`: Waits for acknowledgment only from the partition leader.
-  - `WaitForAll`: Waits for acknowledgment from all replicas.
-  
-- `Producer.Retry.Max`: The maximum number of retry attempts in case of an error.
+- `Producer.RequiredAcks`: The level of acknowledgment for sent messages. Can be:
+    - `NoResponse`: The producer does not expect an acknowledgment.
+    - `WaitForLocal`: Only leader partition acknowledgment is required.
+    - `WaitForAll`: Acknowledgment is required from all replicas.
+- `Producer.Retry.Max`: The number of retry attempts for sending a message in case of failure.
 - `Producer.Return.Successes`: If `true`, the producer will return successful sends.
 
-##### Consumer Configuration
+## 3. Consumer Configuration
 
 Key parameters:
 
-- `Consumer.Offsets.Initial`: Indicates where to start reading if the offset is not stored yet. It can be `OffsetNewest` or `OffsetOldest`.
-- `Consumer.Group.Rebalance.Strategy`: Determines the strategy for rebalancing consumer groups. Main strategies:
-  - `BalanceStrategyRange`: Distributes partitions by range.
-  - `BalanceStrategyRoundRobin`: Evenly distributes partitions across consumers.
+- `Consumer.Offsets.Initial`: Specifies where to start reading if the offset is not saved. Can be `OffsetNewest` or `OffsetOldest`.
+- `Consumer.Group.Rebalance.Strategy`: Defines the strategy for rebalancing consumer groups. Main strategies:
+    - `BalanceStrategyRange`: Distributes partitions by range.
+    - `BalanceStrategyRoundRobin`: Distributes partitions evenly among consumers.
 
-### Working with Producers
+# 3. Working with a Producer
 
 A producer is a component that sends messages to Kafka.
 
-#### Example of a Synchronous Producer
+## 1. Example of Using a Synchronous Producer
 
-A synchronous producer sends a message and waits for the acknowledgment:
+A synchronous producer sends a message and waits for confirmation of the send:
 
 ```go
 package main
@@ -97,13 +96,13 @@ func main() {
         log.Fatalf("Failed to send message: %v", err)
     }
 
-    log.Printf("Message sent to partition %d with offset %d\n", partition, offset)
+    log.Printf("Message sent to partition %d with offset %d\\n", partition, offset)
 }
 ```
 
-#### Asynchronous Producer
+## 2. Asynchronous Producer
 
-An asynchronous producer allows you to send messages without waiting for acknowledgment, increasing throughput:
+An asynchronous producer sends messages without waiting for confirmation, increasing throughput:
 
 ```go
 package main
@@ -130,7 +129,7 @@ func main() {
             case err := <-producer.Errors():
                 log.Printf("Failed to send message: %v", err)
             case success := <-producer.Successes():
-                log.Printf("Message sent to partition %d with offset %d\n", success.Partition, success.Offset)
+                log.Printf("Message sent to partition %d with offset %d\\n", success.Partition, success.Offset)
             }
         }
     }()
@@ -142,18 +141,18 @@ func main() {
 
     producer.Input() <- msg
 
-    // Wait before exiting to ensure messages are sent
+    // Wait before program exit to ensure messages are sent
     select {}
 }
 ```
 
-### Working with Consumers
+# 4. Working with a Consumer
 
 A consumer is a component that reads messages from Kafka.
 
-#### Example of a Consumer
+## 1. Example of Using a Consumer
 
-Simple message consumption from a partition:
+Simple message reading from a partition:
 
 ```go
 package main
@@ -180,16 +179,16 @@ func main() {
     defer partitionConsumer.Close()
 
     for message := range partitionConsumer.Messages() {
-        log.Printf("Received message: %s\n", string(message.Value))
+        log.Printf("Received message: %s\\n", string(message.Value))
     }
 }
 ```
 
-### Consumer Groups
+## 2. Consumer Groups
 
-Consumer groups allow you to process messages in parallel with multiple consumer instances, distributing the load among them.
+Consumer groups allow messages to be processed in parallel by multiple consumer instances, distributing the load among them.
 
-#### Example of a Consumer Group
+### Example of Using a Consumer Group
 
 ```go
 package main
@@ -220,7 +219,7 @@ func main() {
     go func() {
         for {
             if err := consumerGroup.Consume(ctx, []string{"example-topic"}, &consumerGroupHandler{}); err != nil {
-                log.Fatalf("Error in consumption: %v", err)
+                log.Fatalf("Failed to consume: %v", err)
             }
             if ctx.Err() != nil {
                 return
@@ -245,18 +244,18 @@ func (h *consumerGroupHandler) Cleanup(sarama.ConsumerGroupSession) error {
 
 func (h *consumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
     for message := range claim.Messages() {
-        log.Printf("Received message: %s\n", string(message.Value))
+        log.Printf("Received message: %s\\n", string(message.Value))
         session.MarkMessage(message, "")
     }
     return nil
 }
 ```
 
-### Kafka Management
+# 5. Kafka Management
 
-In addition to creating producers and consumers, `Sarama` also provides an API for managing Kafka clusters, such as creating and deleting topics, altering configurations, and more. This is done using the `ClusterAdmin`.
+Besides creating producers and consumers, `Sarama` also provides an API for managing Kafka clusters, such as creating and deleting topics, modifying configurations, and more. For this, the `ClusterAdmin` is used.
 
-#### Example of using ClusterAdmin
+### Example of Using ClusterAdmin
 
 ```go
 package main
@@ -287,7 +286,3 @@ func main() {
     log.Println("Topic successfully created")
 }
 ```
-
-### Conclusion
-
-`Sarama` is a powerful and flexible library for working with Apache Kafka in Go. It supports a wide range of features, from creating simple producers and consumers to managing Kafka clusters. With `Sarama`, you can build high-performance, scalable applications that process large volumes of data in real time.
